@@ -36,17 +36,27 @@ public class GreetingResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response post(@Valid List<Element> elems) {
-        list = elems;
-        for (Element el : list)
-            el.persist();
-        return create(elems, elementRepository, uriInfo);
+    public Response post(@Valid Element elem) {
+        list.add(elem);
+        em.persist(elem);
+        return null;
+    }
+
+    @POST
+    @Path("/getPage")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public List<Element> getPage(@Valid final Page page){
+        Query query = em.createQuery("SELECT c FROM Element c WHERE c.name LIKE '%'");
+        query.setFirstResult(page.getOffset() * page.getPageSize());
+        query.setMaxResults(page.getPageSize());
+        return query.getResultList();
     }
 
     @GET
     @Path("{id}/getOne")
     @Produces(MediaType.APPLICATION_JSON)
-    public Element get(@PathParam Long id) {
+    public Element getOne(@PathParam Long id) {
         return em.find(Element.class, id);
     }
 
@@ -62,18 +72,163 @@ public class GreetingResource {
     @Path("/find")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Element> find(@Valid final Element elem) {
-        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.name LIKE :name OR c.ID = :id " +
-                        "AND c.price = :price OR c.manufacturer LIKE :manufacturer ")
-            .setParameter("name","%" + elem.getName() + "%")
-            .setParameter("id", elem.getId())
-            .setParameter("price", elem.getPrice())
-            .setParameter("manufacturer", elem.getManufacturer());
+        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.name LIKE :name")
+            .setParameter("name","%" + elem.getName() + "%");
         return query.getResultList();
     }
 
-    @DELETE
-    public void delete(String Id){
+    @POST
+    @Path("/clear")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public void clear(@Valid Element elem){
+        list.remove(elem);
+        em.remove(elem);
+    }
 
+    @POST
+    @Path("/DelOne")
+    @Transactional
+    public void DelOne(@Valid Long id){
+        em.remove(getOne(id));
+    }
+
+    @POST
+    @Path("/change")
+    @Transactional
+    public void change(@Valid Element elem){
+        Long ln = Long.valueOf(elem.getId());
+        Element el = getOne(ln);
+        el.setName(elem.getName());
+        el.setPrice(elem.getPrice());
+        el.setManufacturer(elem.getManufacturer());
+        em.persist(el);
+    }
+
+    @POST
+    @Path("/IdBellow")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List<Element> Bellow(@Valid  Long id){
+        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.id > :Id ")
+                .setParameter("Id", id);
+        return query.getResultList();
+    }
+
+    @POST
+    @Path("/IdLow")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List<Element> Low(@Valid  Long id){
+        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.id < :Id ")
+                .setParameter("Id", id);
+        return query.getResultList();
+    }
+
+    @POST
+    @Path("/IdEqual")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List<Element> Equal(@Valid  Long id){
+        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.id = :Id ")
+                .setParameter("Id", id);
+        return query.getResultList();
+    }
+
+    @POST
+    @Path("/PriceBellow")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List<Element> PriceBellow(@Valid  Integer price){
+        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.price > :Price ")
+                .setParameter("Price", price);
+        return query.getResultList();
+    }
+
+    @POST
+    @Path("/PriceLow")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List<Element> PriceLow(@Valid  Integer price){
+        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.price < :Price ")
+                .setParameter("Price", price);
+        return query.getResultList();
+    }
+
+    @POST
+    @Path("/PriceEqual")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List<Element> PriceEqual(@Valid  Integer price){
+        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.price = :Price ")
+                .setParameter("Price", price);
+        return query.getResultList();
+    }
+
+    @POST
+    @Path("/NameFilter")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List<Element> NameFilter(@Valid String name){
+        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.name LIKE :Name ")
+                .setParameter("Name", name);
+        return query.getResultList();
+    }
+
+    @POST
+    @Path("/ManufacturerFilter")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List<Element> ManufacturerFilter(@Valid String manufacturer){
+        final Query query = em.createQuery("SELECT c FROM Element c WHERE c.manufacturer LIKE :Manufacturer ")
+                .setParameter("Manufacturer", manufacturer);
+        return query.getResultList();
+    }
+
+    @POST
+    @Path("/{elem}/Try")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public List<Element> Test(@Valid Element prod, @PathParam String elem){
+        String jql = "SELECT c FROM Element c WHERE c.name LIKE :name AND c.manufacturer LIKE :manufacturer AND ";
+        String[] sp = elem.split("!");
+        if(sp[0].equals("Больше"))
+            jql += "c.ID > :id AND";
+        if(sp[0].equals("Меньше"))
+            jql += "c.ID < :id AND";
+        if(sp[0].equals("Равно"))
+            jql += "c.ID = :id AND";
+        if(sp[1].equals("В начале"))
+            prod.setName(prod.getName() + "%");
+        if(sp[1].equals("В конце"))
+            prod.setName("%" + prod.getName());
+        if(sp[1].equals("В любом месте"))
+            prod.setName("%" + prod.getName() + "%");
+        if(sp[2].equals("Больше"))
+            jql += " c.price > :price";
+        if(sp[2].equals("Меньше"))
+            jql += " c.price < :price";
+        if(sp[2].equals("Равно"))
+            jql += " c.price = :price";
+        if(sp[3].equals("В начале"))
+            prod.setManufacturer(prod.getManufacturer() + "%");
+        if(sp[3].equals("В конце"))
+            prod.setManufacturer("%" + prod.getManufacturer());
+        if(sp[3].equals("В любом месте"))
+            prod.setManufacturer("%" + prod.getManufacturer() + "%");
+        final Query query = em.createQuery(jql)
+                .setParameter("id",prod.getId())
+                .setParameter("name", prod.getName())
+                .setParameter("price", prod.getPrice())
+                .setParameter("manufacturer", prod.getManufacturer());
+        return query.getResultList();
     }
 
 }
