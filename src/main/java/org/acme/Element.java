@@ -1,13 +1,63 @@
 package org.acme;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.Filters;
+import org.hibernate.annotations.ParamDef;
 
-import javax.enterprise.inject.Default;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.NotEmpty;
+
+@FilterDef(name = "Id_Better", parameters = {
+        @ParamDef(name = "id", type = "integer")
+})
+@FilterDef(name = "Id_Low", parameters = {
+        @ParamDef(name = "id", type = "integer")
+})
+@FilterDef(name = "Id_Equal", parameters = {
+        @ParamDef(name = "id", type = "integer")
+})
+@FilterDef(name = "Id_Other", parameters = {
+        @ParamDef(name = "id", type = "integer")
+})
+
+@FilterDef(name = "Name", parameters = {
+        @ParamDef(name = "name", type = "string")
+})
+
+@FilterDef(name = "Price_Better", parameters = {
+        @ParamDef(name = "price", type = "integer")
+})
+@FilterDef(name = "Price_Low", parameters = {
+        @ParamDef(name = "price", type = "integer")
+})
+@FilterDef(name = "Price_Equal", parameters = {
+        @ParamDef(name = "price", type = "integer")
+})
+@FilterDef(name = "Price_Other", parameters = {
+        @ParamDef(name = "price", type = "integer")
+})
+
+@FilterDef(name = "Manufacturer", parameters = {
+        @ParamDef(name = "manufacturer", type = "string")
+})
+
+@Filters({
+        @Filter(name = "Id_Better", condition = ":id < id_product"),
+        @Filter(name = "Id_Low", condition = ":id > id_product"),
+        @Filter(name = "Id_Equal", condition = ":id = id_product"),
+        @Filter(name = "Id_Other", condition = ":id <= id_product"),
+
+        @Filter(name = "Price_Better", condition = ":price < price"),
+        @Filter(name = "Price_Low", condition = ":price > price"),
+        @Filter(name = "Price_Equal", condition = ":price = price"),
+        @Filter(name = "Price_Other", condition = ":price <= price"),
+
+        @Filter(name = "Name", condition = "name_product LIKE :name"),
+        @Filter(name = "Manufacturer", condition = "manufacturer LIKE :manufacturer")
+})
 
 @Entity
 @Table(name = "Products")
