@@ -63,8 +63,8 @@ import javax.persistence.Table;
 @Table(name = "Products")
 public class Element extends PanacheEntity{
 
-    @Column(name  = "id_product")
-    private int ID;
+    @Column(name  = "ID_product")
+    private int idprod;
 
     @Column(name = "name_product")
     private String name;
@@ -77,19 +77,19 @@ public class Element extends PanacheEntity{
 
     public Element() {};
 
-    public Element(int id, String elem, int price, String manufacturer){
-        this.ID = id;
-        this.name = elem;
+    public Element(int idprod, String name, int price, String manufacturer){
+        this.idprod = idprod;
+        this.name = name;
         this.price = price;
         this.manufacturer = manufacturer;
     }
 
-    public int getId() {
-        return ID;
+    public int getIdprod() {
+        return idprod;
     }
 
-    public void setId(int id) {
-        this.ID = id;
+    public void setIdprod(int idprod) {
+        this.idprod = idprod;
     }
 
     public String getName() {

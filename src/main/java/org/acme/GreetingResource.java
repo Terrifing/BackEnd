@@ -33,8 +33,6 @@ public class GreetingResource {
     EntityManager em;
     @Inject
     Session session;
-
-    public List<Element> list = new ArrayList<>();
     public UriInfo uriInfo;
     private ElementRepository elementRepository;
 
@@ -46,7 +44,6 @@ public class GreetingResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
     public Response post(@Valid Element elem) {
-        list.add(elem);
         em.persist(elem);
         return null;
     }
@@ -88,7 +85,7 @@ public class GreetingResource {
     @Path("/change")
     @Transactional
     public void change(@Valid Element elem){
-        Long ln = Long.valueOf(elem.getId());
+        Long ln = Long.valueOf(elem.getIdprod());
         Element el = getOne(ln);
         el.setName(elem.getName());
         el.setPrice(elem.getPrice());
@@ -110,17 +107,17 @@ public class GreetingResource {
 
         switch (sp[0]) {
             case "Больше":
-                FilterID = session.enableFilter("Id_Better").setParameter("id", prod.getId());
+                FilterID = session.enableFilter("Id_Better").setParameter("id", prod.getIdprod());
                 break;
             case "Меньше":
-                FilterID = session.enableFilter("Id_Low").setParameter("id", prod.getId());
+                FilterID = session.enableFilter("Id_Low").setParameter("id", prod.getIdprod());
                 break;
             case "Равно":
-                FilterID = session.enableFilter("Id_Equal").setParameter("id", prod.getId());
+                FilterID = session.enableFilter("Id_Equal").setParameter("id", prod.getIdprod());
                 break;
             default:
-                prod.setId(1);
-                FilterID = session.enableFilter("Id_Other").setParameter("id", prod.getId());
+                prod.setIdprod(1);
+                FilterID = session.enableFilter("Id_Other").setParameter("id", prod.getIdprod());
                 break;
         }
 
@@ -142,7 +139,7 @@ public class GreetingResource {
                 FilterPrice = session.enableFilter("Price_Equal").setParameter("price", prod.getPrice());
                 break;
             default:
-                prod.setId(1);
+                prod.setIdprod(1);
                 FilterPrice = session.enableFilter("Price_Other").setParameter("price", prod.getPrice());
                 break;
         }
@@ -156,7 +153,7 @@ public class GreetingResource {
 
         Integer offset = Integer.parseInt(sp[sp.length-2]);
         Integer pageSize = Integer.parseInt(sp[sp.length-1]);
-        list = session.createQuery("from Element").list();
+        List<Element> list = session.createQuery("from Element").list();
 
         List<Element> result = new ArrayList<>();
         for(int i = offset*pageSize; i < min(offset*pageSize+pageSize, list.size()); i++)
