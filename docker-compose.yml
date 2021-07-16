@@ -1,0 +1,21 @@
+# Версия Docker API
+version: '3.7'
+# Сервисы которые мы будем запускать
+services:
+  # Первый сервис - db
+  app:
+    image: quarkus/code-with-quarkus-legacy-jar:latest
+    ports:
+      - "8080:8080"
+    # Зависит от сервиса db - запускать после него
+    links:
+      - db
+  db:
+    # Образ на основе которого он будет запускаться
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: product
+    ports:
+      - "5433:5432"
